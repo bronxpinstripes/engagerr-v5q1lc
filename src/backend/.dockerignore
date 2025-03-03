@@ -1,0 +1,104 @@
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Build outputs
+**/build
+**/dist
+**/.next
+**/out
+**/*.pyc
+**/__pycache__
+**/.cache
+**/tmp
+
+# Development and test files
+**/*.test.js
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.js
+**/*.spec.ts
+**/*.spec.tsx
+**/tests/
+**/test/
+**/coverage/
+**/.coverage
+**/jest.config.js
+**/.env.test
+**/.env.development
+**/.env.local
+**/cypress/
+**/unittest.cfg
+
+# Version control
+**/.git
+**/.gitignore
+**/.gitattributes
+**/.github
+**/.gitlab
+**/.svn
+
+# IDE and editor specific
+**/.idea
+**/.vscode
+**/.DS_Store
+**/.editorconfig
+**/.eslintrc
+**/.prettierrc
+**/*.swp
+**/*.swo
+
+# Documentation and non-essential files
+**/README.md
+**/LICENSE
+**/CHANGELOG.md
+**/docs/
+**/examples/
+**/assets/
+**/sample_data/
+
+# Docker related
+**/Dockerfile*
+**/*.dockerfile
+**/docker-compose*
+**/.dockerignore
+
+# AI model specific
+**/training_data/
+**/checkpoint/
+**/*.weights
+**/debug_logs/
+**/evaluation_results/
+**/*.ckpt
+**/saved_models/*
+!**/saved_models/production
+**/model_cards/
+**/notebooks/
+**/experiment_tracking/
+**/tensorboard_logs/
+**/model_exports/development
+
+# Large files
+**/*.tar
+**/*.gz
+**/*.zip
+**/*.7z
+**/*.pth
+**/*.onnx
+**/*.tflite
+**/*.h5
+
+# Miscellaneous
+**/.env*
+!**/.env.example
+**/logs/
+**/temp/
+**/*.log
+**/*.bak
+**/tsconfig.json
+**/babel.config.js
+**/rollup.config.js
+**/webpack.config.js
