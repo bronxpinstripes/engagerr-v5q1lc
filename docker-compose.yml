@@ -1,0 +1,143 @@
+version: '3.8'
+
+services:
+  # Traefik reverse proxy and load balancer for the AI services
+  traefik:
+    image: traefik:v2.9
+    container_name: engagerr-traefik
+    command:
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+    ports:
+      - "8080:8080"  # Traefik dashboard
+      - "80:80"      # HTTP endpoint
+    volumes:
+      - ./traefik:/etc/traefik
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  # AI routing service that directs requests to the appropriate specialized models
+  ai-router:
+    build:
+      context: ./infrastructure/docker/ai-router
+      dockerfile: Dockerfile
+    container_name: engagerr-ai-router
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - LLAMA_SERVICE_URL=http://llama:8080
+      - MISTRAL_SERVICE_URL=http://mistral:5001
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - LOG_LEVEL=info
+      - CACHE_ENABLED=true
+      - FALLBACK_ENABLED=true
+    ports:
+      - "3000:3000"
+    networks:
+      - ai-network
+    depends_on:
+      - llama
+      - mistral
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.ai-router.rule=PathPrefix(`/api/ai`)
+      - traefik.http.services.ai-router.loadbalancer.server.port=3000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: "30s"
+      timeout: "5s"
+      retries: 3
+
+  # Llama 3 model container for content analysis and relationship detection
+  llama:
+    build:
+      context: ./src/backend
+      dockerfile: Dockerfile.llama
+    container_name: engagerr-llama
+    volumes:
+      - model-data:/app/models
+    environment:
+      - PORT=8080
+      - MAX_BATCH_SIZE=8
+      - MAX_SEQUENCE_LENGTH=2048
+      - MODEL_PATH=/app/models
+    networks:
+      - ai-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 16G
+        reservations:
+          cpus: '2'
+          memory: 8G
+      replicas: 2
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.llama.rule=PathPrefix(`/api/ai/llama`)
+      - traefik.http.services.llama.loadbalancer.server.port=8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: "30s"
+      timeout: "5s"
+      retries: 3
+
+  # Mistral model container for classification and initial matching tasks
+  mistral:
+    build:
+      context: ./src/backend
+      dockerfile: Dockerfile.mistral
+    container_name: engagerr-mistral
+    volumes:
+      - model-data:/app/models
+    environment:
+      - PORT=5001
+      - MAX_BATCH_SIZE=8
+      - MAX_INPUT_LENGTH=4096
+      - MODEL_PATH=/app/models
+    networks:
+      - ai-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 8G
+        reservations:
+          cpus: '1'
+          memory: 4G
+      replicas: 2
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mistral.rule=PathPrefix(`/api/ai/mistral`)
+      - traefik.http.services.mistral.loadbalancer.server.port=5001
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: "30s"
+      timeout: "5s"
+      retries: 3
+
+networks:
+  # Internal network for AI service communication
+  ai-network:
+    driver: bridge
+
+volumes:
+  # Persistent storage volume for AI model weights and cache
+  model-data:
+    driver: local
