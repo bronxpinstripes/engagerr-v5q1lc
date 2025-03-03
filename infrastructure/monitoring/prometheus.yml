@@ -1,0 +1,230 @@
+# Prometheus Configuration for Engagerr Platform Monitoring
+
+# Global configuration
+global:
+  scrape_interval: 15s      # Set the scrape interval to every 15 seconds
+  evaluation_interval: 15s  # Evaluate rules every 15 seconds
+  scrape_timeout: 10s       # Timeout for scrape requests
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# Rule files to load for alerting
+rule_files:
+  - /etc/prometheus/rules/node_rules.yml
+  - /etc/prometheus/rules/application_rules.yml
+  - /etc/prometheus/rules/database_rules.yml
+  - /etc/prometheus/rules/ai_services_rules.yml
+
+# Scrape configurations for different services
+scrape_configs:
+  # Self monitoring of Prometheus
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+    metrics_path: /metrics
+    scrape_interval: 15s
+
+  # NextJS application metrics
+  - job_name: vercel_nextjs
+    metrics_path: /api/metrics
+    scheme: https
+    static_configs:
+      - targets: ['engagerr.com']
+    scrape_interval: 30s
+    tls_config:
+      insecure_skip_verify: false
+    oauth2:
+      client_id: prometheus-client
+      client_secret: ${PROMETHEUS_CLIENT_SECRET}
+      token_url: https://engagerr.com/api/auth/token
+
+  # API health checks
+  - job_name: api_healthcheck
+    metrics_path: /api/healthcheck
+    scheme: https
+    static_configs:
+      - targets: ['engagerr.com']
+    scrape_interval: 30s
+    tls_config:
+      insecure_skip_verify: false
+
+  # PostgreSQL database metrics
+  - job_name: postgres_exporter
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 1m
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '(.*):.*'
+        replacement: '$1'
+
+  # System metrics
+  - job_name: node_exporter
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 1m
+
+  # AI model containers
+  - job_name: ai_containers
+    static_configs:
+      - targets:
+          - 'ai-router:3000'
+          - 'llama-1:8000'
+          - 'llama-2:8000'
+          - 'mistral-1:8000'
+          - 'mistral-2:8000'
+    metrics_path: /metrics
+    scrape_interval: 30s
+    metric_relabel_configs:
+      - source_labels: [instance]
+        target_label: ai_service
+        regex: '(.*):.*'
+        replacement: '$1'
+
+  # Container resource usage metrics
+  - job_name: cadvisor
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 1m
+
+  # External API integrations health
+  - job_name: external_integrations
+    metrics_path: /api/monitoring/external-services
+    scheme: https
+    static_configs:
+      - targets: ['engagerr.com']
+    scrape_interval: 2m
+
+  # Stripe API health
+  - job_name: stripe_health
+    metrics_path: /api/monitoring/stripe
+    scheme: https
+    static_configs:
+      - targets: ['engagerr.com']
+    scrape_interval: 2m
+
+  # Social media platform API health
+  - job_name: social_platforms
+    metrics_path: /api/monitoring/social-platforms
+    scheme: https
+    static_configs:
+      - targets: ['engagerr.com']
+    scrape_interval: 5m
+
+# Storage configuration
+storage:
+  tsdb:
+    path: /prometheus
+    retention_time: 30d
+    retention_size: 10GB
+  
+# Optional remote write configuration for long-term storage
+remote_write:
+  - url: ${REMOTE_WRITE_URL}
+    basic_auth:
+      username: ${REMOTE_WRITE_USERNAME}
+      password: ${REMOTE_WRITE_PASSWORD}
+    write_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'go_.*'
+        action: drop
+
+# Example alert rules - these would normally be in the rule_files
+# Shown here for reference and documentation purposes
+# Application alerts
+# alert_rules:
+#   groups:
+#   - name: application_alerts
+#     rules:
+#     - alert: HighErrorRate
+#       expr: sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > 0.05
+#       for: 5m
+#       labels:
+#         severity: critical
+#       annotations:
+#         summary: High error rate detected
+#         description: Error rate is above 5% for the last 5 minutes
+#
+#     - alert: SlowAPIResponse
+#       expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 0.5
+#       for: 5m
+#       labels:
+#         severity: warning
+#       annotations:
+#         summary: Slow API response time
+#         description: 95th percentile of API response time is above 500ms
+#
+#     - alert: APIEndpointDown
+#       expr: probe_success{job="api_healthcheck"} == 0
+#       for: 2m
+#       labels:
+#         severity: critical
+#       annotations:
+#         summary: API endpoint down
+#         description: API endpoint {{ $labels.instance }} is down
+#
+#   # Database alerts
+#   - name: database_alerts
+#     rules:
+#     - alert: HighDatabaseConnectionUsage
+#       expr: 100 * sum(postgresql_connections_used) / sum(postgresql_connections_total) > 80
+#       for: 5m
+#       labels:
+#         severity: warning
+#       annotations:
+#         summary: High database connection usage
+#         description: Database connection pool usage is above 80%
+#
+#     - alert: DatabaseDiskUsage
+#       expr: 100 - ((node_filesystem_avail_bytes{mountpoint="/var/lib/postgresql/data"} * 100) / node_filesystem_size_bytes{mountpoint="/var/lib/postgresql/data"}) > 85
+#       for: 5m
+#       labels:
+#         severity: warning
+#       annotations:
+#         summary: High database disk usage
+#         description: Database disk usage is above 85%
+#
+#     - alert: SlowDatabaseQueries
+#       expr: rate(postgresql_slow_queries_total[5m]) > 5
+#       for: 10m
+#       labels:
+#         severity: warning
+#       annotations:
+#         summary: Slow database queries detected
+#         description: More than 5 slow queries per second for the last 10 minutes
+#
+#   # AI service alerts
+#   - name: ai_service_alerts
+#     rules:
+#     - alert: AIServiceDown
+#       expr: up{job="ai_containers"} == 0
+#       for: 5m
+#       labels:
+#         severity: critical
+#       annotations:
+#         summary: AI service is down
+#         description: AI service {{ $labels.instance }} has been down for more than 5 minutes
+#
+#     - alert: AIProcessingQueueBacklog
+#       expr: sum(rate(ai_processing_queue_depth[5m])) > 20
+#       for: 10m
+#       labels:
+#         severity: warning
+#       annotations:
+#         summary: AI processing queue backlog
+#         description: AI processing queue depth has been above 20 for more than 10 minutes
+#
+#     - alert: AIInferenceLatencyHigh
+#       expr: histogram_quantile(0.95, sum(rate(ai_inference_duration_seconds_bucket[5m])) by (le, model)) > 2
+#       for: 5m
+#       labels:
+#         severity: warning
+#       annotations:
+#         summary: High AI inference latency
+#         description: 95th percentile of AI inference time for model {{ $labels.model }} is above 2 seconds
