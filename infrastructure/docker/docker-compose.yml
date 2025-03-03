@@ -1,0 +1,125 @@
+version: '3.8'
+
+services:
+  # Traefik reverse proxy for routing requests to appropriate AI services
+  traefik:
+    image: traefik:v2.10
+    command:
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - ai-network
+
+  # AI Router service for directing requests to appropriate AI models based on task type
+  ai-router:
+    build:
+      context: ./ai-router
+      dockerfile: Dockerfile
+    environment:
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - LLAMA_SERVICE_URL=http://llama-1:8000
+      - MISTRAL_SERVICE_URL=http://mistral-1:8000
+      - NODE_ENV=production
+    depends_on:
+      - llama-1
+      - llama-2
+      - mistral-1
+      - mistral-2
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.ai-router.rule=PathPrefix(`/api/ai`)
+      - traefik.http.services.ai-router.loadbalancer.server.port=3000
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+    networks:
+      - ai-network
+
+  # Llama 3 model containers for content analysis and relationship detection
+  llama-1:
+    build:
+      context: ../../src/backend
+      dockerfile: Dockerfile.llama
+    volumes:
+      - model-data:/app/models
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 16G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - ai-network
+
+  llama-2:
+    build:
+      context: ../../src/backend
+      dockerfile: Dockerfile.llama
+    volumes:
+      - model-data:/app/models
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 16G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - ai-network
+
+  # Mistral model containers for classification and initial matching tasks
+  mistral-1:
+    build:
+      context: ../../src/backend
+      dockerfile: Dockerfile.mistral
+    volumes:
+      - model-data:/app/models
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 8G
+    networks:
+      - ai-network
+
+  mistral-2:
+    build:
+      context: ../../src/backend
+      dockerfile: Dockerfile.mistral
+    volumes:
+      - model-data:/app/models
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 8G
+    networks:
+      - ai-network
+
+volumes:
+  model-data: # Shared volume for AI model storage and caching
+
+networks:
+  ai-network: # Isolated network for AI services
