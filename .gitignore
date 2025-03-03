@@ -1,0 +1,64 @@
+node_modules/
+.pnp
+.pnp.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+
+# Build outputs
+/.next/
+/out/
+/build/
+/dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+# Keep example environment files
+!.env.example
+
+# Test artifacts
+/coverage/
+/.nyc_output/
+*.lcov
+/playwright-report/
+/test-results/
+
+# Development files
+/.vscode/
+/.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Platform specific
+.vercel/
+.supabase/
+src/backend/prisma/dev.db
+.vercelignore
+
+# Docker files
+/docker-volumes/
+docker-compose.override.yml
+
+# AI model files
+model-cache/
+*.gguf
+*.bin
+*.pt
+*.pth
+*.onnx
+
+# Logs and debug
+*.log
+logs/
+.debug/
