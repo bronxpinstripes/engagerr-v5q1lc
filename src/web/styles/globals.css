@@ -1,0 +1,495 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Engagerr Design System
+ * A comprehensive set of global styles integrating Tailwind CSS
+ * for consistent visual identity across the platform
+ * tailwindcss v3.3+
+ */
+
+/* CSS Variables for theming */
+:root {
+  /* Color palette - Light theme */
+  --color-primary: 37, 99, 235; /* #2563EB - Deep Blue */
+  --color-primary-light: 59, 130, 246; /* #3B82F6 - Lighter blue for hover states */
+  --color-primary-dark: 29, 78, 216; /* #1D4ED8 - Darker blue for active states */
+
+  --color-secondary: 13, 148, 136; /* #0D9488 - Teal */
+  --color-secondary-light: 20, 184, 166; /* #14B8A6 - Lighter teal for hover states */
+  --color-secondary-dark: 15, 118, 110; /* #0F766E - Darker teal for active states */
+
+  --color-accent: 139, 92, 246; /* #8B5CF6 - Purple */
+  --color-accent-light: 167, 139, 250; /* #A78BFA - Lighter purple for hover states */
+  --color-accent-dark: 124, 58, 237; /* #7C3AED - Darker purple for active states */
+
+  /* Neutral colors */
+  --color-background: 249, 250, 251; /* #F9FAFB - Lightest gray for backgrounds */
+  --color-foreground: 31, 41, 55; /* #1F2937 - Dark gray for text */
+  --color-muted: 107, 114, 128; /* #6B7280 - Medium gray for muted text */
+  --color-border: 229, 231, 235; /* #E5E7EB - Light gray for borders */
+  --color-input: 243, 244, 246; /* #F3F4F6 - Input background */
+
+  /* Alert colors */
+  --color-success: 16, 185, 129; /* #10B981 - Green */
+  --color-warning: 245, 158, 11; /* #F59E0B - Yellow */
+  --color-error: 239, 68, 68; /* #EF4444 - Red */
+  --color-info: 59, 130, 246; /* #3B82F6 - Blue */
+
+  /* Elevation/shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Borders */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+}
+
+/* Dark theme colors */
+.dark {
+  --color-background: 17, 24, 39; /* #111827 - Dark background */
+  --color-foreground: 243, 244, 246; /* #F3F4F6 - Light text */
+  --color-muted: 156, 163, 175; /* #9CA3AF - Medium gray for muted text */
+  --color-border: 55, 65, 81; /* #374151 - Dark border color */
+  --color-input: 31, 41, 55; /* #1F2937 - Dark input background */
+  
+  /* Adjusted color variants for better contrast in dark mode */
+  --color-primary-light: 96, 165, 250; /* #60A5FA - Brighter blue for better visibility */
+  --color-secondary-light: 45, 212, 191; /* #2DD4BF - Brighter teal */
+  --color-accent-light: 192, 132, 252; /* #C084FC - Brighter purple */
+}
+
+/* Base HTML styling */
+@layer base {
+  html,
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+      Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+    text-rendering: optimizeSpeed;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-top: 0;
+    margin-bottom: 0.5em;
+    color: rgb(var(--color-foreground));
+  }
+
+  h1 {
+    font-size: 2.25rem; /* 36px */
+    font-weight: 700;
+  }
+
+  h2 {
+    font-size: 1.875rem; /* 30px */
+    font-weight: 700;
+  }
+
+  h3 {
+    font-size: 1.5rem; /* 24px */
+  }
+
+  h4 {
+    font-size: 1.25rem; /* 20px */
+  }
+
+  h5 {
+    font-size: 1.125rem; /* 18px */
+  }
+
+  h6 {
+    font-size: 1rem; /* 16px */
+  }
+
+  a {
+    color: rgb(var(--color-primary));
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  a:hover {
+    color: rgb(var(--color-primary-light));
+    text-decoration: underline;
+  }
+
+  p {
+    margin-top: 0;
+    margin-bottom: 1em;
+  }
+
+  code, pre {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 
+      'Liberation Mono', 'Courier New', monospace;
+    font-size: 0.9em;
+  }
+
+  /* Focus styling for accessibility */
+  :focus-visible {
+    outline: 2px solid rgb(var(--color-primary));
+    outline-offset: 2px;
+  }
+
+  /* Remove default focus outline for mouse users, maintain for keyboard */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Remove focus outline from buttons if custom focus styling is defined */
+  button:focus {
+    outline: none;
+  }
+
+  button:focus-visible {
+    outline: 2px solid rgb(var(--color-primary));
+    outline-offset: 2px;
+  }
+
+  /* Remove iOS tap highlight */
+  a, button {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Component styling */
+@layer components {
+  /* Card styling */
+  .card {
+    background-color: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    padding: 1.5rem;
+    border: 1px solid rgb(var(--color-border) / 0.5);
+    overflow: hidden;
+  }
+
+  .dark .card {
+    background-color: rgb(31, 41, 55);
+    border-color: rgb(var(--color-border) / 0.2);
+  }
+
+  /* Button base styling */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition-property: color, background-color, border-color, box-shadow;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+  }
+
+  /* Primary button */
+  .btn-primary {
+    background-color: rgb(var(--color-primary));
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background-color: rgb(var(--color-primary-light));
+  }
+
+  .btn-primary:active {
+    background-color: rgb(var(--color-primary-dark));
+  }
+
+  /* Secondary button */
+  .btn-secondary {
+    background-color: rgb(var(--color-secondary));
+    color: white;
+  }
+
+  .btn-secondary:hover {
+    background-color: rgb(var(--color-secondary-light));
+  }
+
+  .btn-secondary:active {
+    background-color: rgb(var(--color-secondary-dark));
+  }
+
+  /* Outline button */
+  .btn-outline {
+    background-color: transparent;
+    border: 1px solid rgb(var(--color-border));
+    color: rgb(var(--color-foreground));
+  }
+
+  .btn-outline:hover {
+    border-color: rgb(var(--color-primary));
+    color: rgb(var(--color-primary));
+  }
+
+  /* Ghost button */
+  .btn-ghost {
+    background-color: transparent;
+    color: rgb(var(--color-foreground));
+  }
+
+  .btn-ghost:hover {
+    background-color: rgb(var(--color-background) / 0.8);
+  }
+
+  /* Button sizes */
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.125rem;
+  }
+
+  /* Form elements */
+  .form-input,
+  .form-textarea,
+  .form-select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+    border: 1px solid rgb(var(--color-border));
+    background-color: rgb(var(--color-input));
+    color: rgb(var(--color-foreground));
+    transition: border-color 0.15s ease;
+  }
+
+  .form-input:focus,
+  .form-textarea:focus,
+  .form-select:focus {
+    border-color: rgb(var(--color-primary));
+    box-shadow: 0 0 0 2px rgb(var(--color-primary) / 0.1);
+  }
+
+  .form-label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+    color: rgb(var(--color-foreground));
+  }
+
+  .form-helper {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: rgb(var(--color-muted));
+  }
+
+  /* Alert boxes */
+  .alert {
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid transparent;
+  }
+
+  .alert-success {
+    background-color: rgb(var(--color-success) / 0.1);
+    border-left-color: rgb(var(--color-success));
+    color: rgb(var(--color-success));
+  }
+
+  .alert-warning {
+    background-color: rgb(var(--color-warning) / 0.1);
+    border-left-color: rgb(var(--color-warning));
+    color: rgb(var(--color-warning));
+  }
+
+  .alert-error {
+    background-color: rgb(var(--color-error) / 0.1);
+    border-left-color: rgb(var(--color-error));
+    color: rgb(var(--color-error));
+  }
+
+  .alert-info {
+    background-color: rgb(var(--color-info) / 0.1);
+    border-left-color: rgb(var(--color-info));
+    color: rgb(var(--color-info));
+  }
+
+  /* Badge */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: var(--radius-full);
+    padding: 0.125rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .badge-primary {
+    background-color: rgb(var(--color-primary) / 0.1);
+    color: rgb(var(--color-primary));
+  }
+
+  .badge-secondary {
+    background-color: rgb(var(--color-secondary) / 0.1);
+    color: rgb(var(--color-secondary));
+  }
+}
+
+/* Custom utility classes */
+@layer utilities {
+  /* Content grid layout utilities */
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1fr min(1200px, 100%) 1fr;
+  }
+
+  .content-grid > * {
+    grid-column: 2;
+  }
+
+  .content-grid-fluid {
+    grid-column: 1 / -1 !important;
+    width: 100%;
+  }
+
+  /* Animations */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-slide-down {
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes slideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  /* Accessibility utilities */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /* Responsive layout helpers */
+  .dashboard-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .dashboard-layout {
+      grid-template-columns: 240px 1fr;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .dashboard-layout {
+      grid-template-columns: 280px 1fr;
+    }
+  }
+
+  /* Content relationship visualization helper */
+  .relationship-graph {
+    display: grid;
+    place-items: center;
+    overflow: auto;
+    padding: 1rem;
+    min-height: 400px;
+  }
+
+  /* Media kit preview layout */
+  .media-kit-layout {
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .media-kit-layout {
+      grid-template-columns: 300px 1fr;
+    }
+  }
+
+  /* Partnership details layout */
+  .partnership-layout {
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .partnership-layout {
+      grid-template-columns: 300px 1fr;
+    }
+  }
+
+  /* Custom scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgb(var(--color-background));
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgb(var(--color-muted) / 0.5);
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--color-muted) / 0.8);
+  }
+}
+
+/* Print styles for media kits and reports */
+@media print {
+  body {
+    font-size: 12pt;
+    color: #000;
+    background: #fff;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  a {
+    text-decoration: none;
+    color: #000;
+  }
+  
+  .card {
+    box-shadow: none;
+    border: 1px solid #ddd;
+    break-inside: avoid;
+  }
+}
