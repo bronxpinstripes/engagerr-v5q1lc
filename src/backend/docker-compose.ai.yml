@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  # AI Router - API gateway that routes AI requests to the appropriate model based on task requirements
+  ai-router:
+    image: engagerr-ai-router:latest
+    build:
+      context: ../
+      dockerfile: src/services/ai/router/Dockerfile
+    container_name: engagerr-ai-router
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - LLAMA_SERVICE_URL=http://llama:5000
+      - MISTRAL_SERVICE_URL=http://mistral:5000
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - LOG_LEVEL=info
+      - CACHE_ENABLED=true
+      - FALLBACK_ENABLED=true
+    ports:
+      - "3000:3000"
+    networks:
+      - ai-network
+    depends_on:
+      - llama
+      - mistral
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: '2G'
+        reservations:
+          cpus: '0.5'
+          memory: '1G'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: "30s"
+      timeout: "5s"
+      retries: 3
+
+  # Llama 3 model container for content analysis and relationship detection
+  llama:
+    build:
+      context: .
+      dockerfile: Dockerfile.llama
+    container_name: engagerr-llama
+    volumes:
+      - model-data:/app/models
+    environment:
+      - PORT=5000
+      - MAX_BATCH_SIZE=8
+      - MAX_SEQUENCE_LENGTH=2048
+      - MODEL_PATH=/app/models
+    networks:
+      - ai-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: '16G'
+        reservations:
+          cpus: '2'
+          memory: '8G'
+      replicas: 2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: "30s"
+      timeout: "5s"
+      retries: 3
+
+  # Mistral model container for classification and initial matching tasks
+  mistral:
+    build:
+      context: .
+      dockerfile: Dockerfile.mistral
+    container_name: engagerr-mistral
+    volumes:
+      - model-data:/app/models
+    environment:
+      - PORT=5000
+      - MAX_BATCH_SIZE=8
+      - MAX_INPUT_LENGTH=4096
+      - MODEL_PATH=/app/models
+    networks:
+      - ai-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: '8G'
+        reservations:
+          cpus: '1'
+          memory: '4G'
+      replicas: 2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: "30s"
+      timeout: "5s"
+      retries: 3
+
+networks:
+  # Internal network for AI service communication
+  ai-network:
+    driver: bridge
+
+volumes:
+  # Persistent storage volume for AI model weights and cache
+  model-data:
+    driver: local
+
+# Additional Configuration Notes:
+# - Scaling: To scale services: docker-compose -f docker-compose.ai.yml up -d --scale llama=3 --scale mistral=3
+# - Load Balancing: AI Router automatically load balances between model instances
+# - Monitoring: All services have health checks for monitoring, access logs with docker-compose logs
+# - GPU Support: For GPU acceleration, ensure the host has NVIDIA Container Toolkit installed
+# - Security: AI services are isolated in their own network with the router controlling access
+# - Model Storage: Shared volume prevents redundant downloads of large model weights
